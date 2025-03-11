@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AuthProvider from "./components/AuthProvider";
-import ProtectedRoute from "./components/ProtectedRoute";
+import AuthProvider from "../components/AuthProvider";
+import ProtectedRoute from "../components/ProtectedRoute";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,9 @@ export default function RootLayout({
         <main>
           <AuthProvider>
             <ProtectedRoute>
-              {children}
+              <SidebarProvider>
+                {children}
+              </SidebarProvider>
             </ProtectedRoute>
           </AuthProvider>
         </main>
