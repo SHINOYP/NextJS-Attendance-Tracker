@@ -14,8 +14,42 @@ datasource db {
 }
 
 model User {
-  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
   name           String
-  email          String  @unique
+  email          String       @unique
   hashedPassword String?
+  role           Role         @default(STUDENT)
+  student        Attendance[] @relation("StudentAttendance")
+  captain        Attendance[] @relation("MarkedByCaptain")
+}
+
+model Session {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  date       DateTime
+  location   String
+  notes      String?
+  attendance Attendance[]
+}
+
+model Attendance {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  session    Session  @relation(fields: [sessionId], references: [id])
+  sessionId  String   @db.ObjectId
+  student    User     @relation("StudentAttendance", fields: [studentId], references: [id])
+  studentId  String   @db.ObjectId
+  status     Status
+  markedBy   User     @relation("MarkedByCaptain", fields: [markedById], references: [id])
+  markedById String   @db.ObjectId
+  timestamp  DateTime @default(now())
+}
+
+enum Role {
+  COACH
+  CAPTAIN
+  STUDENT
+}
+
+enum Status {
+  PRESENT
+  ABSENT
 }
