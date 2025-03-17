@@ -37,7 +37,7 @@ export default function CoachViewPage() {
     const [newStudent, setNewStudent] = useState({ name: "", rollNumber: "", team: "" });
     const [activeTab, setActiveTab] = useState("view");
     const [attendanceData, setAttendanceData] = useState(sampleAttendance);
-    const [editingStudent, setEditingStudent] = useState(null);
+    const [editingStudent, setEditingStudent] = useState<{ id: number; name: string; rollNumber: string; team: string } | null>(null);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [startDate, setStartDate] = useState("");
@@ -48,6 +48,8 @@ export default function CoachViewPage() {
     const getAttendanceForDate = () => {
         return attendanceData.find(item => item.date === selectedDate)?.data || {};
     };
+
+
 
     // Filter students based on search and team
     const filteredStudents = students.filter(student => {
@@ -404,7 +406,7 @@ export default function CoachViewPage() {
                                                                 </td>
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                                     <div className="flex items-center space-x-2">
-                                                                        <Dialog open={isEditDialogOpen && editingStudent?.id === student.id} onOpenChange={(open) => {
+                                                                        <Dialog open={isEditDialogOpen && editingStudent?.id === student?.id} onOpenChange={(open) => {
                                                                             setIsEditDialogOpen(open);
                                                                             if (open) setEditingStudent(student);
                                                                         }}>
@@ -426,7 +428,7 @@ export default function CoachViewPage() {
                                                                                         <Input
                                                                                             id="edit-name"
                                                                                             value={editingStudent?.name || ''}
-                                                                                            onChange={(e) => setEditingStudent({ ...editingStudent, name: e.target.value })}
+                                                                                            onChange={(e) => setEditingStudent(editingStudent ? { ...editingStudent, name: e.target.value } : null)}
                                                                                         />
                                                                                     </div>
                                                                                     <div className="grid gap-2">
@@ -434,14 +436,22 @@ export default function CoachViewPage() {
                                                                                         <Input
                                                                                             id="edit-rollNumber"
                                                                                             value={editingStudent?.rollNumber || ''}
-                                                                                            onChange={(e) => setEditingStudent({ ...editingStudent, rollNumber: e.target.value })}
+                                                                                            onChange={(e) => {
+                                                                                                if (editingStudent) {
+                                                                                                    setEditingStudent({ ...editingStudent, rollNumber: e.target.value });
+                                                                                                }
+                                                                                            }}
                                                                                         />
                                                                                     </div>
                                                                                     <div className="grid gap-2">
                                                                                         <Label htmlFor="edit-team">Team</Label>
                                                                                         <Select
                                                                                             value={editingStudent?.team || ''}
-                                                                                            onValueChange={(value) => setEditingStudent({ ...editingStudent, team: value })}
+                                                                                            onValueChange={(value) => {
+                                                                                                if (editingStudent) {
+                                                                                                    setEditingStudent({ ...editingStudent, team: value });
+                                                                                                }
+                                                                                            }}
                                                                                         >
                                                                                             <SelectTrigger id="edit-team">
                                                                                                 <SelectValue placeholder="Select team" />
