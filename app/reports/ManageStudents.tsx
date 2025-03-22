@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -7,125 +7,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserPlus, Edit, Trash } from "lucide-react";
+// import { useAlert } from "@/context/AlertContext";
+import AddStudent from "./AddStudent";
 
 interface ManageStudentsProps {
     searchQuery: string;
     setSearchQuery: (query: string) => void;
-    filteredStudents: { id: number; name: string; rollNumber: string; team: string }[];
+    filteredStudents: { id: number; name: string; rollno: string; team: string }[];
 }
 
-// Sample student data
-const sampleStudents = [
-    { id: 1, name: "Alex Johnson", rollNumber: "ST001", team: "Football" },
-    { id: 2, name: "Jamie Smith", rollNumber: "ST002", team: "Football" },
-    { id: 3, name: "Casey Williams", rollNumber: "ST003", team: "Basketball" },
-    { id: 4, name: "Jordan Taylor", rollNumber: "ST004", team: "Basketball" },
-    { id: 5, name: "Morgan Brown", rollNumber: "ST005", team: "Swimming" },
-    { id: 6, name: "Riley Davis", rollNumber: "ST006", team: "Swimming" },
-    { id: 7, name: "Taylor Wilson", rollNumber: "ST007", team: "Football" },
-    { id: 8, name: "Sam Martinez", rollNumber: "ST008", team: "Basketball" },
-];
 const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQuery, filteredStudents }) => {
-    const [students, setStudents] = useState(sampleStudents);
     const [selectedTeam, setSelectedTeam] = useState("All");
-    const [editingStudent, setEditingStudent] = useState<{ id: number; name: string; rollNumber: string; team: string } | null>(null);
-    const [newStudent, setNewStudent] = useState({ name: "", rollNumber: "", team: "" });
+    const [editingStudent, setEditingStudent] = useState<{ id: number; name: string; rollno: string; team: string } | null>(null);
+
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [category, setCategory] = useState<{ id: number; name: string }[]>([]);
+
+    // const { showAlert } = useAlert();
 
 
 
-    // Add new student
-    const handleAddStudent = () => {
-        console.info("clicked")
-        createStudent();
-        if (newStudent.name && newStudent.rollNumber && newStudent.team) {
-            setStudents([
-                ...students,
-                {
-                    id: students.length + 1,
-                    name: newStudent.name,
-                    rollNumber: newStudent.rollNumber,
-                    team: newStudent.team
-                }
-            ]);
-
-            setNewStudent({ name: "", rollNumber: "", team: "" });
-            setIsAddDialogOpen(false);
-        }
-    };
-
-
-    const createStudent = async () => {
-        console.info("clicked")
-        try {
-            const response = await fetch('/api/student', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newStudent)
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to add student');
-            }
-
-            return data.student;
-        } catch (error) {
-            console.error('Error adding student:', error);
-            throw error;
-        }
-    };
-    // Edit student
     const handleEditStudent = () => {
-        if (editingStudent && editingStudent.name && editingStudent.rollNumber && editingStudent.team) {
-            setStudents(
-                students.map(student =>
-                    student.id === editingStudent.id ? editingStudent : student
-                )
-            );
+        if (editingStudent && editingStudent.name && editingStudent.rollno && editingStudent.team) {
+            // setStudents(
+            //     students.map(student =>
+            //         student.id === editingStudent.id ? editingStudent : student
+            //     )
+            // );
             setIsEditDialogOpen(false);
         }
     };
 
     // Delete student
     const handleDeleteStudent = (studentId: number) => {
+        console.log("Delete student with id:", studentId);
         if (confirm("Are you sure you want to delete this student?")) {
-            setStudents(students.filter(student => student.id !== studentId));
+            //  setStudents(students.filter(student => student.id !== studentId));
         }
     };
 
 
-    const getCategory = async () => {
 
-        try {
-            const response = await fetch('/api/category', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to add student');
-            }
-            setCategory(data.category);
-
-        } catch (error) {
-            console.error('Error getting category:', error);
-            throw error;
-        }
-    };
-
-
-    useEffect(() => { getCategory(); }, [])
     return (
 
 
@@ -145,56 +67,9 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                 Add Student
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Add New Student</DialogTitle>
-                                <DialogDescription>
-                                    Add a new student to the attendance system
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Full Name</Label>
-                                    <Input
-                                        id="name"
-                                        value={newStudent.name}
-                                        onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                                        placeholder="Enter student's full name"
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="rollNumber">Roll Number</Label>
-                                    <Input
-                                        id="rollNumber"
-                                        value={newStudent.rollNumber}
-                                        onChange={(e) => setNewStudent({ ...newStudent, rollNumber: e.target.value })}
-                                        placeholder="Enter student's roll number"
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="team">Team</Label>
-                                    <Select
-                                        value={newStudent.team}
-                                        onValueChange={(value: string) => setNewStudent({ ...newStudent, team: value })}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select team" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {category.map((item) => (
-                                                <SelectItem key={item?.id} value={item?.name}>{item?.name}</SelectItem>
-                                            ))}
+                        <AddStudent setIsAddDialogOpen={setIsAddDialogOpen} />
 
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-                                <Button onClick={handleAddStudent}>Add Student</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                    </Dialog >
                 </CardHeader>
                 <CardContent>
                     <div className="flex gap-4 mb-6">
@@ -243,7 +118,7 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                     filteredStudents.map((student) => (
                                         <tr key={student.id}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {student.rollNumber}
+                                                {student.rollno}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"> {student.name}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -268,6 +143,7 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                                                 </DialogDescription>
                                                             </DialogHeader>
                                                             <div className="grid gap-4 py-4">
+
                                                                 <div className="grid gap-2">
                                                                     <Label htmlFor="edit-name">Full Name</Label>
                                                                     <Input
@@ -277,13 +153,13 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                                                     />
                                                                 </div>
                                                                 <div className="grid gap-2">
-                                                                    <Label htmlFor="edit-rollNumber">Roll Number</Label>
+                                                                    <Label htmlFor="edit-rollno">Roll Number</Label>
                                                                     <Input
-                                                                        id="edit-rollNumber"
-                                                                        value={editingStudent?.rollNumber || ''}
+                                                                        id="edit-rollno"
+                                                                        value={editingStudent?.rollno || ''}
                                                                         onChange={(e) => {
                                                                             if (editingStudent) {
-                                                                                setEditingStudent({ ...editingStudent, rollNumber: e.target.value });
+                                                                                setEditingStudent({ ...editingStudent, rollno: e.target.value });
                                                                             }
                                                                         }}
                                                                     />
@@ -335,7 +211,7 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                 </CardContent>
                 <CardFooter className="flex justify-between">
                     <div className="text-sm text-gray-500">
-                        Total students: {students.length}
+                        Total students: 10
                     </div>
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
@@ -346,10 +222,10 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                         </DialogTrigger>
                     </Dialog>
                 </CardFooter>
-            </Card>
+            </Card >
 
             {/* Bulk Import Section */}
-            <Card>
+            <Card  >
                 <CardHeader>
                     <CardTitle>Bulk Import Students</CardTitle>
                     <CardDescription>
@@ -373,14 +249,14 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                             or drag and drop
                         </p>
                         <p className="mt-2 text-xs text-gray-500">
-                            CSV file should contain columns: name, rollNumber, team
+                            CSV file should contain columns: name, rollno, team
                         </p>
                     </div>
                 </CardContent>
                 <CardFooter>
                     <Button className="w-full">Import Students</Button>
                 </CardFooter>
-            </Card>
+            </Card >
         </>
     )
 }

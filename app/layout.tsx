@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthProvider from "../components/AuthProvider";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { AlertProvider } from "@/context/AlertContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +34,11 @@ export default function RootLayout({
         <main>
           <AuthProvider>
             <ProtectedRoute>
-              <SidebarProvider>
-                {children}
-              </SidebarProvider>
+              <AlertProvider>
+                <SidebarProvider>
+                  {children}
+                </SidebarProvider>
+              </AlertProvider>
             </ProtectedRoute>
           </AuthProvider>
         </main>

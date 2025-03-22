@@ -21,6 +21,7 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
+        Category: true,
       },
     });
 
@@ -49,15 +50,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, password } = body;
+    const { name, rollno, team } = body;
 
-    if (!name || !email) {
+    console.log(body);
+    if (!name || !team || !rollno) {
       return NextResponse.json(
-        { error: "Name and email are required" },
+        { error: "Name, Roll Number, and Team are required" },
         { status: 400 }
       );
     }
 
+    const email = `${name
+      .toLowerCase()
+      .replace(/\s+/g, "")}${Date.now()}@mail.com`;
+    const password = "12345678";
     await connectToDatabase();
 
     const existingUser = await prisma.user.findUnique({
@@ -77,6 +83,7 @@ export async function POST(request: NextRequest) {
         email,
         hashedPassword: password ? await bycrpt.hash(password, 10) : null,
         role: "STUDENT", // Ensure "STUDENT" matches the enum or type definition in your schema
+        Category: team,
       },
     });
 
