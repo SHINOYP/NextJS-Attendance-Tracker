@@ -13,8 +13,11 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { getServerSession } from "next-auth";
 
-export default function Page() {
+
+export default async function Page() {
+  const data = await getServerSession();
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -31,7 +34,7 @@ export default function Page() {
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                <BreadcrumbPage>Data Fetching {JSON.stringify(data)}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

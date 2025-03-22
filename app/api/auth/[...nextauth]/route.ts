@@ -38,7 +38,13 @@ export const authOptions: NextAuthOptions = {
           );
 
           if (isPasswordValid) {
-            return user;
+            // Return user object with all necessary fields including role
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+            };
           }
           return null;
         } catch (e) {
@@ -50,8 +56,26 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  callbacks: {
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.role = token.role as string;
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+      }
+      return token;
+    },
+  },
+  session: {
+    strategy: "jwt",
+  },
   secret: process.env.NEXTAUTH_SECRET,
 };
+
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
