@@ -392,7 +392,7 @@ export default function CoachViewPage() {
                                     searchQuery={searchQuery}
                                     setSearchQuery={setSearchQuery}
                                     filteredStudents={filteredStudents.map(student => ({
-                                        id: Number(student.id), // Convert id to number
+                                        id: student.id,
                                         name: student.name,
                                         rollno: student.rollno || "",
                                         team: student.Category || "Unassigned"

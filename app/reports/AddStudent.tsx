@@ -7,16 +7,25 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { useAlert } from "@/context/AlertContext";
 
-interface AddStudentProps {
-    setIsAddDialogOpen: (open: boolean) => void;
+interface Student {
+    id: string;
+    name: string;
+    rollno: string;
+    team: string;
 }
 
-const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen }) => {
+interface AddStudentProps {
+    setIsAddDialogOpen: (open: boolean) => void;
+    editStudent?: Student;
+    isEditDialogOpen: boolean;
+}
+
+const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent, isEditDialogOpen }) => {
     const [category, setCategory] = useState<{ id: number; name: string }[]>([]);
     const [errorMsg, setErrorMsg] = useState("");
     const [newStudent, setNewStudent] = useState({ name: "", rollno: "", team: "" });
-
     const { showAlert } = useAlert();
+    console.log("editStudent", editStudent)
 
     const handleAddStudent = async () => {
         console.info("clicked")
@@ -82,9 +91,9 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen }) => {
 
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Add New Student</DialogTitle>
+                    <DialogTitle>{isEditDialogOpen ? "Edit Student" : "Add new Student"}</DialogTitle>
                     <DialogDescription>
-                        Add a new student to the attendance system
+                        {isEditDialogOpen ? "Edit the student details" : "Add a new student to the system"}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -93,7 +102,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen }) => {
                         <Label htmlFor="name">Full Name</Label>
                         <Input
                             id="name"
-                            value={newStudent.name}
+                            value={isEditDialogOpen ? editStudent?.name : newStudent.name}
                             onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
                             placeholder="Enter student's full name"
                         />
@@ -102,7 +111,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen }) => {
                         <Label htmlFor="rollno">Roll Number</Label>
                         <Input
                             id="rollno"
-                            value={newStudent.rollno}
+                            value={isEditDialogOpen ? editStudent?.rollno : newStudent.rollno}
                             onChange={(e) => setNewStudent({ ...newStudent, rollno: e.target.value })}
                             placeholder="Enter student's roll number"
                         />
@@ -111,7 +120,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen }) => {
                         <Label htmlFor="team">Team</Label>
                         <Select
 
-                            value={newStudent.team}
+                            value={isEditDialogOpen ? editStudent?.team : newStudent.team}
                             onValueChange={(value: string) => setNewStudent({ ...newStudent, team: value })}
                         >
                             <SelectTrigger>
@@ -128,7 +137,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen }) => {
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleAddStudent}>Add Student</Button>
+                    <Button onClick={handleAddStudent}>{isEditDialogOpen ? "Save Changes" : "Save"}</Button>
                 </DialogFooter>
             </DialogContent>
         </>

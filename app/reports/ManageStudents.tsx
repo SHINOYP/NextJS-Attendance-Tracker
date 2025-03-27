@@ -2,9 +2,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserPlus, Edit, Trash } from "lucide-react";
 // import { useAlert } from "@/context/AlertContext";
@@ -13,12 +12,12 @@ import AddStudent from "./AddStudent";
 interface ManageStudentsProps {
     searchQuery: string;
     setSearchQuery: (query: string) => void;
-    filteredStudents: { id: number; name: string; rollno: string; team: string }[];
+    filteredStudents: { id: string; name: string; rollno: string; team: string }[];
 }
 
 const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQuery, filteredStudents }) => {
     const [selectedTeam, setSelectedTeam] = useState("All");
-    const [editingStudent, setEditingStudent] = useState<{ id: number; name: string; rollno: string; team: string } | null>(null);
+    const [editingStudent, setEditingStudent] = useState<{ id: string; name: string; rollno: string; team: string } | null>(null);
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -27,19 +26,19 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
 
 
 
-    const handleEditStudent = () => {
-        if (editingStudent && editingStudent.name && editingStudent.rollno && editingStudent.team) {
-            // setStudents(
-            //     students.map(student =>
-            //         student.id === editingStudent.id ? editingStudent : student
-            //     )
-            // );
-            setIsEditDialogOpen(false);
-        }
-    };
+    // const handleEditStudent = () => {
+    //     if (editingStudent && editingStudent.name && editingStudent.rollno && editingStudent.team) {
+    //         // setStudents(
+    //         //     students.map(student =>
+    //         //         student.id === editingStudent.id ? editingStudent : student
+    //         //     )
+    //         // );
+    //         setIsEditDialogOpen(false);
+    //     }
+    // };
 
     // Delete student
-    const handleDeleteStudent = (studentId: number) => {
+    const handleDeleteStudent = (studentId: string) => {
         console.log("Delete student with id:", studentId);
         if (confirm("Are you sure you want to delete this student?")) {
             //  setStudents(students.filter(student => student.id !== studentId));
@@ -67,7 +66,7 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                 Add Student
                             </Button>
                         </DialogTrigger>
-                        <AddStudent setIsAddDialogOpen={setIsAddDialogOpen} />
+                        <AddStudent setIsAddDialogOpen={setIsAddDialogOpen} editStudent={editingStudent || undefined} isEditDialogOpen />
 
                     </Dialog >
                 </CardHeader>
@@ -135,61 +134,7 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                                                 <Edit className="h-4 w-4" />
                                                             </Button>
                                                         </DialogTrigger>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle>Edit Student</DialogTitle>
-                                                                <DialogDescription>
-                                                                    Update student information
-                                                                </DialogDescription>
-                                                            </DialogHeader>
-                                                            <div className="grid gap-4 py-4">
-
-                                                                <div className="grid gap-2">
-                                                                    <Label htmlFor="edit-name">Full Name</Label>
-                                                                    <Input
-                                                                        id="edit-name"
-                                                                        value={editingStudent?.name || ''}
-                                                                        onChange={(e) => setEditingStudent(editingStudent ? { ...editingStudent, name: e.target.value } : null)}
-                                                                    />
-                                                                </div>
-                                                                <div className="grid gap-2">
-                                                                    <Label htmlFor="edit-rollno">Roll Number</Label>
-                                                                    <Input
-                                                                        id="edit-rollno"
-                                                                        value={editingStudent?.rollno || ''}
-                                                                        onChange={(e) => {
-                                                                            if (editingStudent) {
-                                                                                setEditingStudent({ ...editingStudent, rollno: e.target.value });
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                </div>
-                                                                <div className="grid gap-2">
-                                                                    <Label htmlFor="edit-team">Team</Label>
-                                                                    <Select
-                                                                        value={editingStudent?.team || ''}
-                                                                        onValueChange={(value) => {
-                                                                            if (editingStudent) {
-                                                                                setEditingStudent({ ...editingStudent, team: value });
-                                                                            }
-                                                                        }}
-                                                                    >
-                                                                        <SelectTrigger id="edit-team">
-                                                                            <SelectValue placeholder="Select team" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            <SelectItem value="Football">Football</SelectItem>
-                                                                            <SelectItem value="Basketball">Basketball</SelectItem>
-                                                                            <SelectItem value="Swimming">Swimming</SelectItem>
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                </div>
-                                                            </div>
-                                                            <DialogFooter>
-                                                                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-                                                                <Button onClick={handleEditStudent}>Save Changes</Button>
-                                                            </DialogFooter>
-                                                        </DialogContent>
+                                                        <AddStudent setIsAddDialogOpen={setIsAddDialogOpen} editStudent={editingStudent || undefined} isEditDialogOpen />
                                                     </Dialog>
                                                     <Button variant="outline" size="sm" className="text-red-500" onClick={() => handleDeleteStudent(student.id)}>
                                                         <Trash className="h-4 w-4" />
