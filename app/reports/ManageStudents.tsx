@@ -6,23 +6,23 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserPlus, Edit, Trash } from "lucide-react";
-// import { useAlert } from "@/context/AlertContext";
+import { useAlert } from "@/context/AlertContext";
 import AddStudent from "./AddStudent";
 
 interface ManageStudentsProps {
     searchQuery: string;
     setSearchQuery: (query: string) => void;
-    filteredStudents: { id: string; name: string; rollno: string; team: string }[];
+    filteredStudents: { id: string; name: string; rollNumber: string; team: string }[];
 }
 
 const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQuery, filteredStudents }) => {
     const [selectedTeam, setSelectedTeam] = useState("All");
-    const [editingStudent, setEditingStudent] = useState<{ id: string; name: string; rollno: string; team: string } | null>(null);
+    const [editingStudent, setEditingStudent] = useState<{ id: string; name: string; rollNumber: string; team: string } | null>(null);
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-    // const { showAlert } = useAlert();
+    const { showAlert } = useAlert();
 
 
 
@@ -37,16 +37,40 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
     //     }
     // };
 
-    // Delete student
-    const handleDeleteStudent = (studentId: string) => {
-        console.log("Delete student with id:", studentId);
-        if (confirm("Are you sure you want to delete this student?")) {
-            //  setStudents(students.filter(student => student.id !== studentId));
+    const handleDeleteStudent = async (studentId: string) => {
+        try {
+            const response = await fetch(`/api/student?id=${studentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Ensures cookies are sent with the request
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(data.error || 'Failed to delete student');
+            } else {
+                showAlert({
+                    title: "Success",
+                    message: "Student Deleted Successfully!",
+                    type: "success"
+                })
+                return data.student;
+            }
+        }
+        catch (error) {
+            console.error('Error deleting student:', error);
+            throw error;
         }
     };
 
+    const handleEditClick = (student: { id: string; name: string; rollNumber: string; team: string }) => {
+        setEditingStudent(student);
 
-
+    };
     return (
 
 
@@ -66,7 +90,7 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                 Add Student
                             </Button>
                         </DialogTrigger>
-                        <AddStudent setIsAddDialogOpen={setIsAddDialogOpen} editStudent={editingStudent || undefined} isEditDialogOpen />
+                        <AddStudent setIsEditDialogOpen={setIsAddDialogOpen} setIsAddDialogOpen={setIsAddDialogOpen} editStudent={editingStudent || undefined} isEditDialogOpen={isEditDialogOpen} />
 
                     </Dialog >
                 </CardHeader>
@@ -117,7 +141,7 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                     filteredStudents.map((student) => (
                                         <tr key={student.id}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {student.rollno}
+                                                {student.rollNumber}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"> {student.name}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -125,16 +149,13 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <div className="flex items-center space-x-2">
-                                                    <Dialog open={isEditDialogOpen && editingStudent?.id === student?.id} onOpenChange={(open) => {
-                                                        setIsEditDialogOpen(open);
-                                                        if (open) setEditingStudent(student);
-                                                    }}>
+                                                    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                                                         <DialogTrigger asChild>
-                                                            <Button variant="outline" size="sm">
+                                                            <Button variant="outline" size="sm" onClick={() => handleEditClick(student)}>
                                                                 <Edit className="h-4 w-4" />
                                                             </Button>
                                                         </DialogTrigger>
-                                                        <AddStudent setIsAddDialogOpen={setIsAddDialogOpen} editStudent={editingStudent || undefined} isEditDialogOpen />
+                                                        <AddStudent setIsAddDialogOpen={setIsAddDialogOpen} editStudent={editingStudent || undefined} isEditDialogOpen={isEditDialogOpen} setIsEditDialogOpen={setIsEditDialogOpen} />
                                                     </Dialog>
                                                     <Button variant="outline" size="sm" className="text-red-500" onClick={() => handleDeleteStudent(student.id)}>
                                                         <Trash className="h-4 w-4" />

@@ -10,7 +10,7 @@ import { useAlert } from "@/context/AlertContext";
 interface Student {
     id: string;
     name: string;
-    rollno: string;
+    rollNumber: string;
     team: string;
 }
 
@@ -18,20 +18,21 @@ interface AddStudentProps {
     setIsAddDialogOpen: (open: boolean) => void;
     editStudent?: Student;
     isEditDialogOpen: boolean;
+    setIsEditDialogOpen: (open: boolean) => void;
 }
 
-const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent, isEditDialogOpen }) => {
+const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent, isEditDialogOpen, setIsEditDialogOpen }) => {
     const [category, setCategory] = useState<{ id: number; name: string }[]>([]);
     const [errorMsg, setErrorMsg] = useState("");
-    const [newStudent, setNewStudent] = useState({ name: "", rollno: "", team: "" });
+    const [newStudent, setNewStudent] = useState({ id: "", name: "", rollNumber: "", team: "" });
     const { showAlert } = useAlert();
     console.log("editStudent", editStudent)
-
+    console.log("editStudent", isEditDialogOpen)
     const handleAddStudent = async () => {
         console.info("clicked")
         try {
             const response = await fetch('/api/student', {
-                method: 'POST',
+                method: isEditDialogOpen ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -46,8 +47,9 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
 
 
             } else {
-                setNewStudent({ name: "", rollno: "", team: "" });
+                setNewStudent({ id: "", name: "", rollNumber: "", team: "" });
                 setIsAddDialogOpen(false);
+                setIsEditDialogOpen(false);
                 showAlert({
                     title: "Success",
                     message: "Student Created Successfully!",
@@ -60,6 +62,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
             throw error;
         }
     };
+
 
 
     const getCategory = async () => {
@@ -85,7 +88,19 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
             throw error;
         }
     };
-    useEffect(() => { getCategory(); }, [])
+
+
+    useEffect(() => {
+        getCategory();
+        if (isEditDialogOpen && editStudent) {
+            setNewStudent({
+                id: editStudent?.id || "",
+                name: editStudent?.name || "",
+                rollNumber: editStudent?.rollNumber || "",
+                team: editStudent?.team || ""
+            });
+        }
+    }, [editStudent, isEditDialogOpen]);
     return (
         <>
 
@@ -102,7 +117,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                         <Label htmlFor="name">Full Name</Label>
                         <Input
                             id="name"
-                            value={isEditDialogOpen ? editStudent?.name : newStudent.name}
+                            value={newStudent.name}
                             onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
                             placeholder="Enter student's full name"
                         />
@@ -111,8 +126,8 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                         <Label htmlFor="rollno">Roll Number</Label>
                         <Input
                             id="rollno"
-                            value={isEditDialogOpen ? editStudent?.rollno : newStudent.rollno}
-                            onChange={(e) => setNewStudent({ ...newStudent, rollno: e.target.value })}
+                            value={newStudent.rollNumber}
+                            onChange={(e) => setNewStudent({ ...newStudent, rollNumber: e.target.value })}
                             placeholder="Enter student's roll number"
                         />
                     </div>
@@ -120,7 +135,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                         <Label htmlFor="team">Team</Label>
                         <Select
 
-                            value={isEditDialogOpen ? editStudent?.team : newStudent.team}
+                            value={newStudent.team}
                             onValueChange={(value: string) => setNewStudent({ ...newStudent, team: value })}
                         >
                             <SelectTrigger>

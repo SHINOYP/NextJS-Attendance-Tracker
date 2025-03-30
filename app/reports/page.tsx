@@ -30,7 +30,7 @@ interface Student {
     email: string;
     role: string;
     Category?: string;
-    rollno?: string;
+    rollNumber?: string;
 }
 
 interface AttendanceRecord {
@@ -86,7 +86,7 @@ export default function CoachViewPage() {
     // Filter students based on search and team
     const filteredStudents = students.filter((student) => {
         const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (student.rollno?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
+            (student.rollNumber?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
         const matchesTeam = selectedTeam === "All" || student.Category === selectedTeam;
         return matchesSearch && matchesTeam;
     });
@@ -125,7 +125,7 @@ export default function CoachViewPage() {
             // Ensure students have rollno property for search functionality
             const studentsWithRollNo = data.students.map((student: Student, index: number) => ({
                 ...student,
-                rollno: student.rollno || `S${index + 1}` // Generate rollno if not present
+                rollno: student.rollNumber || `S${index + 1}` // Generate rollno if not present
             }));
             setStudents(studentsWithRollNo);
         } catch (error) {
@@ -187,7 +187,7 @@ export default function CoachViewPage() {
             students: reportStudents.map(student => ({
                 id: student.id,
                 name: student.name,
-                rollno: student.rollno || "",
+                rollno: student.rollNumber || "",
                 team: student.Category || "Unassigned",
                 percentage: calculateAttendancePercentage(student.id),
                 days: reportAttendance.map(day => ({
@@ -309,7 +309,7 @@ export default function CoachViewPage() {
                                                             return (
                                                                 <tr key={student.id}>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                                        {student.rollno || '-'}
+                                                                        {student.rollNumber || '-'}
                                                                     </td>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                                         {student.name}
@@ -394,7 +394,7 @@ export default function CoachViewPage() {
                                     filteredStudents={filteredStudents.map(student => ({
                                         id: student.id,
                                         name: student.name,
-                                        rollno: student.rollno || "",
+                                        rollNumber: student.rollNumber || "",
                                         team: student.Category || "Unassigned"
                                     }))}
                                 />

@@ -12,7 +12,7 @@ export async function GET() {
     await connectToDatabase();
 
     // Only fetch users with STUDENT role
-    const students = await prisma.user.findMany({
+    const data = await prisma.user.findMany({
       where: {
         role: "STUDENT", // Ensure "STUDENT" matches the enum or type definition in your schema
       },
@@ -22,8 +22,13 @@ export async function GET() {
         email: true,
         role: true,
         Category: true,
+        rollNumber: true,
       },
     });
+    const students = data.map((student) => ({
+      ...student,
+      rollNumber: student?.rollNumber.toString(), // Convert BigInt to string
+    }));
 
     return NextResponse.json({ students }, { status: 200 });
   } catch (error) {
@@ -50,10 +55,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, rollno, team } = body;
+    const { name, rollNumber, team } = body;
 
     console.log(body);
-    if (!name || !team || !rollno) {
+    if (!name || !team || !rollNumber) {
       return NextResponse.json(
         { error: "Name, Roll Number, and Team are required" },
         { status: 400 }
@@ -84,6 +89,7 @@ export async function POST(request: NextRequest) {
         hashedPassword: password ? await bycrpt.hash(password, 10) : null,
         role: "STUDENT", // Ensure "STUDENT" matches the enum or type definition in your schema
         Category: team,
+        rollNumber: rollNumber,
       },
     });
 
@@ -126,9 +132,9 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, name, email } = body;
+    const { id, name, team, rollNumber } = body;
 
-    if (!id || (!name && !email)) {
+    if (!id || (!name && !team && !rollNumber)) {
       return NextResponse.json(
         { error: "Student ID and at least one field to update are required" },
         { status: 400 }
@@ -137,40 +143,29 @@ export async function PUT(request: NextRequest) {
 
     await connectToDatabase();
 
-    if (email) {
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          email,
-          id: { not: id },
-        },
-      });
-
-      if (existingUser) {
-        return NextResponse.json(
-          { error: "Email already in use" },
-          { status: 409 }
-        );
-      }
-    }
-
     const updatedStudent = await prisma.user.update({
       where: { id },
       data: {
         ...(name && { name }),
-        ...(email && { email }),
+        ...(team && { Category: team }),
+        ...(rollNumber && { rollNumber }),
       },
       select: {
         id: true,
         name: true,
-        email: true,
         role: true,
+        rollNumber: true,
       },
     });
 
     return NextResponse.json(
       {
         message: "Student updated successfully",
-        student: updatedStudent,
+        student: {
+          ...updatedStudent,
+          id: updatedStudent.id.toString(), // Convert BigInt to string
+          rollNumber: updatedStudent?.rollNumber.toString(), // Convert BigInt to string
+        },
       },
       { status: 200 }
     );
