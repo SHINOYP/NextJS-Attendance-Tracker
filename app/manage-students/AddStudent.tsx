@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { useAlert } from "@/context/AlertContext";
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Student {
     id: string;
@@ -19,18 +20,19 @@ interface AddStudentProps {
     editStudent?: Student;
     isEditDialogOpen: boolean;
     setIsEditDialogOpen: (open: boolean) => void;
-    setActiveTab: (tab: string) => void;
+
 }
 
-const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent, isEditDialogOpen, setIsEditDialogOpen, setActiveTab }) => {
+const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent, isEditDialogOpen, setIsEditDialogOpen }) => {
     const [category, setCategory] = useState<{ id: number; name: string }[]>([]);
-    const [errorMsg, setErrorMsg] = useState("");
     const [newStudent, setNewStudent] = useState({ id: "", name: "", rollNumber: "", team: "" });
+    const [errorMsg, setErrorMsg] = useState("");
+    const [loading, setLoading] = useState(false);
     const { showAlert } = useAlert();
-    console.log("editStudent", editStudent)
-    console.log("editStudent", isEditDialogOpen)
+
+
     const handleAddStudent = async () => {
-        console.info("clicked")
+
         try {
             const response = await fetch('/api/student', {
                 method: isEditDialogOpen ? 'PUT' : 'POST',
@@ -56,7 +58,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                     message: "Student Created Successfully!",
                     type: "success"
                 })
-                setActiveTab('view')
+
                 return data.student;
             }
         } catch (error) {
@@ -68,7 +70,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
 
 
     const getCategory = async () => {
-
+        setLoading(true);
         try {
             const response = await fetch('/api/category', {
                 method: 'GET',
@@ -84,7 +86,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                 throw new Error(data.error || 'Failed to add student');
             }
             setCategory(data.category);
-
+            setLoading(false)
         } catch (error) {
             console.error('Error getting category:', error);
             throw error;
@@ -113,45 +115,49 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                         {isEditDialogOpen ? "Edit the student details" : "Add a new student to the system"}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    {errorMsg ? <Label htmlFor="error-msg" className="text-red-500 bg-red-50 py-2 px-2 rounded">{errorMsg}</Label    > : <></>}
-                    <div className="grid gap-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input
-                            id="name"
-                            value={newStudent.name}
-                            onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                            placeholder="Enter student's full name"
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="rollno">Roll Number</Label>
-                        <Input
-                            id="rollno"
-                            value={newStudent.rollNumber}
-                            onChange={(e) => setNewStudent({ ...newStudent, rollNumber: e.target.value })}
-                            placeholder="Enter student's roll number"
-                        />
-                    </div>
-                    <div className="grid gap-2 w-full">
-                        <Label htmlFor="team">Team</Label>
-                        <Select
+                {loading ? <>
+                    <Skeleton className='min-w-full h-10 my-2' />
+                    <Skeleton className='min-w-full h-10 my-2' />
+                    <Skeleton className='min-w-full h-10 my-2' /></> : (<div className="grid gap-4 py-4">
+                        {errorMsg ? <Label htmlFor="error-msg" className="text-red-500 bg-red-50 py-2 px-2 rounded">{errorMsg}</Label    > : <></>}
+                        <div className="grid gap-2">
+                            <Label htmlFor="rollno">Roll Number</Label>
+                            <Input
+                                id="rollno"
+                                value={newStudent.rollNumber}
+                                onChange={(e) => setNewStudent({ ...newStudent, rollNumber: e.target.value })}
+                                placeholder="Enter student's roll number"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input
+                                id="name"
+                                value={newStudent.name}
+                                onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                                placeholder="Enter student's full name"
+                            />
+                        </div>
 
-                            value={newStudent.team}
-                            onValueChange={(value: string) => setNewStudent({ ...newStudent, team: value })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select team" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {category.map((item) => (
-                                    <SelectItem key={item?.id} value={item?.name}>{item?.name}</SelectItem>
-                                ))}
+                        <div className="grid gap-2 w-full">
+                            <Label htmlFor="team">Team</Label>
+                            <Select
 
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
+                                value={newStudent.team}
+                                onValueChange={(value: string) => setNewStudent({ ...newStudent, team: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select team" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {category.map((item) => (
+                                        <SelectItem key={item?.id} value={item?.name}>{item?.name}</SelectItem>
+                                    ))}
+
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>)}
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
                     <Button onClick={handleAddStudent}>{isEditDialogOpen ? "Save Changes" : "Save"}</Button>

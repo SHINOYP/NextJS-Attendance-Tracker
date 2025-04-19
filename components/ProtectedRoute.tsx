@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession();
     const router = useRouter();
-    console.log("pr called", session)
+
     useEffect(() => {
         if (status === 'loading') return;
         if (!session) {
@@ -16,8 +16,21 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         }
     }, [session, status, router]);
 
-    if (status === 'loading') {
-        return <div>Loading...</div>;
+    if (status == 'loading') {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    className="w-4/6 h-auto"
+                    style={{ filter: "brightness(1.2)", objectFit: "contain" }}
+                >
+                    <source src="/Loading.webm" type="video/webm" />
+                    Loading...
+                </video>
+            </div>
+        );
     }
 
     return session ? children : null;

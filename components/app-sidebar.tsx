@@ -1,5 +1,5 @@
+"use client"
 import * as React from "react"
-
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/sidebar"
 import { Users, ClipboardCheck, UserPlus, User, LogOut } from "lucide-react"
 import Link from "next/link"
+import { useSession, signOut } from "next-auth/react"
+import { Button } from "./ui/button"
+
 
 // Navigation data for the sports club attendance system
 const sidebarData = {
@@ -44,19 +47,26 @@ const sidebarData = {
   ],
 }
 
-export function AppSidebar({ userRole = "captain", ...props }: React.ComponentProps<typeof Sidebar> & { userRole?: string }) {
-  // Filter menu items based on user role
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session } = useSession();
+
+
+
+  const userRole = session?.user?.role || "CAPTAIN"; // Replace with actual role extraction logic
+
   const filteredNav = sidebarData.navMain.filter(item => {
-    if (userRole === "coach") {
+    if (userRole === "COACH") {
       // Coach can access everything
       return true;
-    } else if (userRole === "captain") {
+    } else if (userRole === "CAPTAIN") {
       // Captain can't access certain management features
-      return item.url !== "/manage-students" || item.url === "/take-attendance";
+      return item.url !== "/manage-students" && item.url !== "/take-attendance";
     }
     return true;
   });
-
+  const handleLogOut = () => {
+    signOut()
+  }
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -94,10 +104,10 @@ export function AppSidebar({ userRole = "captain", ...props }: React.ComponentPr
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton>
-                <Link href="/logout" className="flex items-center gap-2 text-red-500">
+                <Button onClick={handleLogOut} className="flex items-center gap-2 text-red-500">
                   <LogOut className="size-4" />
                   Logout
-                </Link>
+                </Button>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
