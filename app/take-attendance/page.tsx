@@ -219,7 +219,7 @@ export default function TakeAttendancePage() {
                                         </Button>
                                     </div>
 
-                                    <div className="border rounded-md">
+                                    <div className="border overflow-auto rounded-md">
                                         {loading ? (
                                             <>
                                                 {Array.from({ length: 8 }).map((_, index) => (

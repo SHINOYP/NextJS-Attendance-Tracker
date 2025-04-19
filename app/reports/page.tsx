@@ -313,7 +313,7 @@ export default function CoachViewPage() {
                                         </div>
                                     </div>
 
-                                    <div className="border rounded-md">
+                                    <div className="border overflow-auto rounded-md">
                                         {isLoading ? (
                                             <>
                                                 {Array.from({ length: 8 }).map((_, index) => (
@@ -321,7 +321,7 @@ export default function CoachViewPage() {
                                                 ))}
                                             </>
                                         ) : (
-                                            <table className="min-w-full divide-y divide-gray-200">
+                                            <table className="min-w-full divide-y  divide-gray-200">
                                                 <thead className="bg-gray-50">
                                                     <tr>
                                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -341,7 +341,7 @@ export default function CoachViewPage() {
                                                         </th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                <tbody className="bg-white divide-y  divide-gray-200">
                                                     {filteredStudents.length > 0 ? (
                                                         filteredStudents.map((student) => {
                                                             const attendance = getAttendanceForDate();

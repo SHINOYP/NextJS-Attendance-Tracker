@@ -189,7 +189,7 @@ export default function Page() {
                                 </div>
 
 
-                                <div className="border rounded-md">
+                                <div className="border rounded-md overflow-auto">
                                     {isLoading ? (
                                         <>
                                             {Array.from({ length: 8 }).map((_, index) => (
