@@ -78,7 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Users className="size-4" />
           </div>
           <div className="flex flex-col gap-0.5 leading-none">
-            <span className="font-medium">Sports Club</span>
+            <span className="font-medium">nssPulse</span>
             <span className="text-xs text-muted-foreground">Attendance System</span>
           </div>
         </SidebarMenuButton>
