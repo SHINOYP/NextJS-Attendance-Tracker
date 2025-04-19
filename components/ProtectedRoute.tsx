@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession();
     const router = useRouter();
-
+    console.log("pr called", session)
     useEffect(() => {
         if (status === 'loading') return;
         if (!session) {

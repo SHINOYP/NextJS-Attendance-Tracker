@@ -22,29 +22,20 @@ model User {
   student        Attendance[] @relation("StudentAttendance")
   captain        Attendance[] @relation("MarkedByCaptain")
   Category       String?
-  rollNumber     BigInt?
+  rollNumber     BigInt?      @unique
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
 
-model Session {
-  id         String       @id @default(auto()) @map("_id") @db.ObjectId
-  date       DateTime
-  location   String
-  notes      String?
-  attendance Attendance[]
-}
-
 model Attendance {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  session    Session  @relation(fields: [sessionId], references: [id])
-  sessionId  String   @db.ObjectId
   student    User     @relation("StudentAttendance", fields: [studentId], references: [id])
   studentId  String   @db.ObjectId
   status     Status
   markedBy   User     @relation("MarkedByCaptain", fields: [markedById], references: [id])
   markedById String   @db.ObjectId
   timestamp  DateTime @default(now())
+  date       DateTime @default(now())
 }
 
 model Category {

@@ -19,9 +19,10 @@ interface AddStudentProps {
     editStudent?: Student;
     isEditDialogOpen: boolean;
     setIsEditDialogOpen: (open: boolean) => void;
+    setActiveTab: (tab: string) => void;
 }
 
-const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent, isEditDialogOpen, setIsEditDialogOpen }) => {
+const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent, isEditDialogOpen, setIsEditDialogOpen, setActiveTab }) => {
     const [category, setCategory] = useState<{ id: number; name: string }[]>([]);
     const [errorMsg, setErrorMsg] = useState("");
     const [newStudent, setNewStudent] = useState({ id: "", name: "", rollNumber: "", team: "" });
@@ -55,6 +56,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                     message: "Student Created Successfully!",
                     type: "success"
                 })
+                setActiveTab('view')
                 return data.student;
             }
         } catch (error) {

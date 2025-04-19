@@ -74,6 +74,7 @@ export default function CoachViewPage() {
     const [students, setStudents] = useState<Student[]>([]);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const [teamFilter, setTeamFilter] = useState("All");
 
     // Get attendance for selected date
@@ -85,9 +86,12 @@ export default function CoachViewPage() {
 
     // Filter students based on search and team
     const filteredStudents = students.filter((student) => {
-        const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (student.rollNumber?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
-        const matchesTeam = selectedTeam === "All" || student.Category === selectedTeam;
+        const matchesSearch =
+            student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            student.rollNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            false;
+        const matchesTeam =
+            selectedTeam === "All" || student.Category === selectedTeam;
         return matchesSearch && matchesTeam;
     });
 
@@ -122,79 +126,38 @@ export default function CoachViewPage() {
             if (!response.ok) {
                 throw new Error(data.error || "Failed to fetch student");
             }
-            // Ensure students have rollno property for search functionality
-            const studentsWithRollNo = data.students.map((student: Student, index: number) => ({
-                ...student,
-                rollno: student.rollNumber || `S${index + 1}` // Generate rollno if not present
-            }));
-            setStudents(studentsWithRollNo);
+            setStudents(data.students);
         } catch (error) {
             console.error("Error getting students:", error);
             throw error;
         }
     };
 
-    // Function to mark attendance (for future implementation)
-    const markAttendance = (studentId: string, isPresent: boolean) => {
-        const currentDate = selectedDate;
-        setAttendanceData(prevData => {
-            // Find if we already have an entry for this date
-            const dateIndex = prevData.findIndex(item => item.date === currentDate);
-
-            if (dateIndex >= 0) {
-                // Update existing entry
-                const newData = [...prevData];
-                newData[dateIndex] = {
-                    ...newData[dateIndex],
-                    data: {
-                        ...newData[dateIndex].data,
-                        [studentId]: isPresent
-                    }
-                };
-                return newData;
-            } else {
-                // Create new entry for this date
-                return [
-                    ...prevData,
-                    {
-                        date: currentDate,
-                        data: {
-                            [studentId]: isPresent
-                        }
-                    }
-                ];
-            }
-        });
-    };
-
-    // Generate report data for export
     const generateReportData = () => {
         if (!startDate || !endDate) return null;
 
-        // Filter attendance by date range
-        const reportAttendance = attendanceData.filter(item => {
+        const reportAttendance = attendanceData.filter((item) => {
             return item.date >= startDate && item.date <= endDate;
         });
 
-        // Filter students by team if needed
-        const reportStudents = students.filter(student => {
+        const reportStudents = students.filter((student) => {
             return teamFilter === "All" || student.Category === teamFilter;
         });
 
         return {
             dateRange: { startDate, endDate },
             team: teamFilter,
-            students: reportStudents.map(student => ({
+            students: reportStudents.map((student) => ({
                 id: student.id,
                 name: student.name,
                 rollno: student.rollNumber || "",
                 team: student.Category || "Unassigned",
                 percentage: calculateAttendancePercentage(student.id),
-                days: reportAttendance.map(day => ({
+                days: reportAttendance.map((day) => ({
                     date: day.date,
-                    present: day.data[student.id] === true
-                }))
-            }))
+                    present: day.data[student.id] === true,
+                })),
+            })),
         };
     };
 
@@ -211,9 +174,111 @@ export default function CoachViewPage() {
         alert("Report export functionality would be implemented here");
     };
 
+    const handleDateChange = (date: string) => {
+        const value = date
+        const selectedDate = new Date(value);
+        const today = new Date();
+        if (selectedDate > today) {
+            alert("Selected date cannot be in the future.");
+            return;
+        }
+        setSelectedDate(date);
+        fetchAttendanceForDate(value)
+    };
+
+    const fetchAttendanceForDate = async (date: string) => {
+        try {
+            setIsLoading(true);
+            const response = await fetch(`/api/attendance/byDate?date=${date}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to fetch attendance data");
+            }
+
+            if (!data.attendanceMarked) {
+                alert("No attendance marked for this date.");
+                return false;
+            }
+            const formattedData: { date: string; data: { [key: string]: boolean } } = {
+                date,
+                data: {}
+            };
+
+
+            data.records.forEach((record: { studentId: string | number; status: string; }) => {
+                formattedData.data[record.studentId] = record.status === "PRESENT";
+            });
+
+
+            setAttendanceData(prev => {
+
+                const filtered = prev.filter(item => item.date !== date);
+
+                return [...filtered, formattedData];
+            });
+
+            return data.attendanceMarked;
+        } catch (error) {
+            console.error("Error fetching attendance:", error);
+            return false;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    // Function to fetch attendance data for a date range
+    const fetchAttendanceRange = async (start: string, end: string) => {
+        try {
+            setIsLoading(true);
+            const response = await fetch(`/api/attendance/range?start=${start}&end=${end}&team=${teamFilter}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to fetch attendance range");
+            }
+
+            // Convert the data to our format
+            interface DateRecord {
+                date: string;
+                records: {
+                    studentId: string;
+                    status: string;
+                }[];
+            }
+
+            interface FormattedAttendance {
+                date: string;
+                data: {
+                    [studentId: string]: boolean;
+                };
+            }
+
+            const formattedData: FormattedAttendance[] = data.dates.map((dateRecord: DateRecord) => ({
+                date: dateRecord.date,
+                data: dateRecord.records.reduce((acc: { [key: string]: boolean }, record) => {
+                    acc[record.studentId] = record.status === "PRESENT";
+                    return acc;
+                }, {})
+            }));
+
+            setAttendanceData(formattedData);
+            return true;
+        } catch (error) {
+            console.error("Error fetching attendance range:", error);
+            return false;
+        } finally {
+            setIsLoading(false);
+        }
+    };
     useEffect(() => {
         getStudents();
     }, [activeTab]);
+
+    useEffect(() => {
+        if (startDate && endDate) {
+            fetchAttendanceRange(startDate, endDate);
+        }
+    }, [startDate, endDate, teamFilter]);
 
     return (
         <div className="flex h-screen w-full bg-gray-100">
@@ -273,7 +338,7 @@ export default function CoachViewPage() {
                                                 <Input
                                                     type="date"
                                                     value={selectedDate}
-                                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                                    onChange={(e) => handleDateChange(e.target.value)}
                                                     className="pl-8 w-48"
                                                 />
                                             </div>
@@ -304,12 +369,13 @@ export default function CoachViewPage() {
                                                     {filteredStudents.length > 0 ? (
                                                         filteredStudents.map((student) => {
                                                             const attendance = getAttendanceForDate();
-                                                            const isPresent = student?.id && attendance[student.id] === true;
+                                                            const isPresent =
+                                                                student?.id && attendance[student.id] === true;
 
                                                             return (
                                                                 <tr key={student.id}>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                                        {student.rollNumber || '-'}
+                                                                        {student.rollNumber || "-"}
                                                                     </td>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                                         {student.name}
@@ -391,12 +457,13 @@ export default function CoachViewPage() {
                                 <ManageStudents
                                     searchQuery={searchQuery}
                                     setSearchQuery={setSearchQuery}
-                                    filteredStudents={filteredStudents.map(student => ({
+                                    filteredStudents={filteredStudents.map((student) => ({
                                         id: student.id,
                                         name: student.name,
                                         rollNumber: student.rollNumber || "",
-                                        team: student.Category || "Unassigned"
+                                        team: student.Category || "Unassigned",
                                     }))}
+                                    setActiveTab={setActiveTab}
                                 />
                             </TabsContent>
                         </Tabs>

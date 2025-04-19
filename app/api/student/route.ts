@@ -72,12 +72,12 @@ export async function POST(request: NextRequest) {
     await connectToDatabase();
 
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { rollNumber },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "Email already in use" },
+        { error: "rollnumber already in use" },
         { status: 409 }
       );
     }

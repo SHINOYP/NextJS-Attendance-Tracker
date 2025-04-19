@@ -13,9 +13,10 @@ interface ManageStudentsProps {
     searchQuery: string;
     setSearchQuery: (query: string) => void;
     filteredStudents: { id: string; name: string; rollNumber: string; team: string }[];
+    setActiveTab: (tab: string) => void;
 }
 
-const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQuery, filteredStudents }) => {
+const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQuery, filteredStudents, setActiveTab }) => {
     const [selectedTeam, setSelectedTeam] = useState("All");
     const [editingStudent, setEditingStudent] = useState<{ id: string; name: string; rollNumber: string; team: string } | null>(null);
 
@@ -90,7 +91,7 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                 Add Student
                             </Button>
                         </DialogTrigger>
-                        <AddStudent setIsEditDialogOpen={setIsAddDialogOpen} setIsAddDialogOpen={setIsAddDialogOpen} editStudent={editingStudent || undefined} isEditDialogOpen={isEditDialogOpen} />
+                        <AddStudent setIsEditDialogOpen={setIsAddDialogOpen} setActiveTab={setActiveTab} setIsAddDialogOpen={setIsAddDialogOpen} editStudent={editingStudent || undefined} isEditDialogOpen={isEditDialogOpen} />
 
                     </Dialog >
                 </CardHeader>
@@ -155,7 +156,7 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ searchQuery, setSearchQ
                                                                 <Edit className="h-4 w-4" />
                                                             </Button>
                                                         </DialogTrigger>
-                                                        <AddStudent setIsAddDialogOpen={setIsAddDialogOpen} editStudent={editingStudent || undefined} isEditDialogOpen={isEditDialogOpen} setIsEditDialogOpen={setIsEditDialogOpen} />
+                                                        <AddStudent setIsAddDialogOpen={setIsAddDialogOpen} setActiveTab={setActiveTab} editStudent={editingStudent || undefined} isEditDialogOpen={isEditDialogOpen} setIsEditDialogOpen={setIsEditDialogOpen} />
                                                     </Dialog>
                                                     <Button variant="outline" size="sm" className="text-red-500" onClick={() => handleDeleteStudent(student.id)}>
                                                         <Trash className="h-4 w-4" />
