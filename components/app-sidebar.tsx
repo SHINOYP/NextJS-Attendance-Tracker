@@ -21,7 +21,7 @@ const sidebarData = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/dashboard",
+      url: "/",
       icon: <Users className="size-4" />
     },
     {
