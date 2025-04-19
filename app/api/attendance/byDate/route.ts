@@ -1,7 +1,7 @@
 // app/api/attendance/byDate/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import prisma from "@/prisma";
 
 export async function GET(request: NextRequest) {

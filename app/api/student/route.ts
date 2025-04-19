@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/helpers/server.helper";
 import prisma from "@/prisma";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import bycrpt from "bcrypt";
 
 // Get all students
@@ -27,7 +27,7 @@ export async function GET() {
     });
     const students = data.map((student) => ({
       ...student,
-      rollNumber: student?.rollNumber.toString(), // Convert BigInt to string
+      rollNumber: student?.rollNumber?.toString() || "", // Convert BigInt to string or fallback to an empty string
     }));
 
     return NextResponse.json({ students }, { status: 200 });
@@ -164,7 +164,7 @@ export async function PUT(request: NextRequest) {
         student: {
           ...updatedStudent,
           id: updatedStudent.id.toString(), // Convert BigInt to string
-          rollNumber: updatedStudent?.rollNumber.toString(), // Convert BigInt to string
+          rollNumber: updatedStudent?.rollNumber?.toString() || "", // Convert BigInt to string or fallback to an empty string
         },
       },
       { status: 200 }
