@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { Users, ClipboardCheck, UserPlus, User, LogOut } from "lucide-react"
+import { Users, ClipboardCheck, UserPlus, User, LogOut, Volleyball } from "lucide-react"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "./ui/button"
@@ -75,10 +75,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
           <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-            <Users className="size-4" />
+            <Volleyball className="size-4" />
           </div>
           <div className="flex flex-col gap-0.5 leading-none">
-            <span className="font-medium">NssPulse</span>
+            <span className="font-medium">NSS PULSE</span>
             <span className="text-xs text-muted-foreground">Attendance System</span>
           </div>
         </SidebarMenuButton>

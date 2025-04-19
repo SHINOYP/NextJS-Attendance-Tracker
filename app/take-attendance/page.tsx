@@ -70,7 +70,7 @@ export default function TakeAttendancePage() {
             if (!response.ok) {
                 throw new Error(data.error || "Failed to fetch student");
             }
-            console.log("getStudntsd data called");
+
             setAttendanceData(
                 data.students.map((student: Student) => ({
                     ...student,
@@ -92,9 +92,11 @@ export default function TakeAttendancePage() {
                     : student
             )
         );
-        console.log(attendanceData);
+
     };
+
     const saveAttendance = async () => {
+        console.log(date);
         const attendancePayload = {
             date: date,
             attendances: attendanceData.map((student) => ({
@@ -102,9 +104,9 @@ export default function TakeAttendancePage() {
                 status: student.present ? "PRESENT" : "ABSENT",
             })),
         };
-
+        console.log("tale attem");
         try {
-            const response = await fetch("/api/attendance", {
+            const response = await fetch("/api/attendance/submit", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -116,8 +118,12 @@ export default function TakeAttendancePage() {
             if (!response.ok) {
                 throw new Error(data.error || "Failed to submit attendance");
             }
+            else {
+                alert("Attendance submitted successfully!");
+                setResult({ attendanceMarked: true });
+            }
 
-            alert("Attendance submitted successfully!");
+
         } catch (error) {
             console.error("Error submitting attendance:", error);
             alert("Failed to submit attendance.");
@@ -134,28 +140,31 @@ export default function TakeAttendancePage() {
         );
     };
 
-    const checkAttendance = async () => {
-        if (!date) return;
 
-        setLoading(true);
-        try {
-            const response = await fetch(`/api/attendance/?date=${date}`);
-            const data = await response.json();
-            setResult(data);
-        } catch (error) {
-            console.error("Error checking attendance:", error);
-            setResult({ error: "Failed to check attendance" });
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
         getStudents();
     }, []);
+
     useEffect(() => {
-        checkAttendance();
+        const checkAttendance = async () => {
+            if (!date) return;
+
+            setLoading(true);
+            try {
+                const response = await fetch(`/api/attendance/submit?date=${date}`);
+                const data = await response.json();
+                setResult(data);
+            } catch (error) {
+                console.error("Error checking attendance:", error);
+                setResult({ error: "Failed to check attendance" });
+            } finally {
+                setLoading(false);
+            }
+        }; checkAttendance();
     }, [date]);
+
+
 
     return (
         <div className="flex fle h-screen w-full bg-gray-100">
@@ -163,7 +172,6 @@ export default function TakeAttendancePage() {
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                     <SidebarTrigger className="-ml-1" />
-
                 </header>
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <main className="flex-1 overflow-x-hidden overflow-y-auto p-4">
@@ -260,6 +268,7 @@ export default function TakeAttendancePage() {
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                                     <Checkbox
                                                                         checked={student?.present}
+                                                                        disabled={result?.attendanceMarked}
                                                                         onCheckedChange={() =>
                                                                             toggleAttendance(student?.id)
                                                                         }
@@ -290,7 +299,8 @@ export default function TakeAttendancePage() {
                                         disabled={result?.attendanceMarked}
                                     >
                                         <Save className="h-4 w-4" />
-                                        Save Attendance
+                                        {result?.attendanceMarked ? "Attendance Already Marked" : "Save Attendance"}
+
                                     </Button>
                                 </CardFooter>
                             </Card>

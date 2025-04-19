@@ -389,9 +389,9 @@ export default function CoachViewPage() {
                                             </table>)}
                                     </div>
                                 </CardContent>
-                                <CardFooter className="flex justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <Label>Report Range:</Label>
+                                <CardFooter className="flex justify-between overflow-auto ">
+                                    <div className="flex items-center  gap-4">
+                                        <Label className="">Report Range:</Label>
                                         <Input
                                             type="date"
                                             value={startDate}
