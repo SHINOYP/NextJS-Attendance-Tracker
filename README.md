@@ -86,7 +86,7 @@ sports-club-attendance/
 │   ├── app-sidebar/      # Application sidebar
 │   └── ui/               # ShadCN UI components
 ├── lib/                  # Utility functions and API helpers
-├── pages/                # Page components
+├── app/                # Page components
 │   └── api/              # API routes
 ├── public/               # Static assets
 └── styles/               # Global styles
