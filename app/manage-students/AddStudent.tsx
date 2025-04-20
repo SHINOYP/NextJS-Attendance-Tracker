@@ -20,10 +20,10 @@ interface AddStudentProps {
     editStudent?: Student;
     isEditDialogOpen: boolean;
     setIsEditDialogOpen: (open: boolean) => void;
-
+    getStudents: () => void;
 }
 
-const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent, isEditDialogOpen, setIsEditDialogOpen }) => {
+const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent, isEditDialogOpen, setIsEditDialogOpen, getStudents }) => {
     const [category, setCategory] = useState<{ id: number; name: string }[]>([]);
     const [newStudent, setNewStudent] = useState({ id: "", name: "", rollNumber: "", team: "" });
     const [errorMsg, setErrorMsg] = useState("");
@@ -54,11 +54,11 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                 setIsAddDialogOpen(false);
                 setIsEditDialogOpen(false);
                 showAlert({
-                    title: "Success",
-                    message: "Student Created Successfully!",
+                    title: isEditDialogOpen ? " Update Success" : "Add Success",
+                    message: isEditDialogOpen ? "Student Edited  Successfully!" : "Student Added Successfully!",
                     type: "success"
-                })
-
+                });
+                getStudents();
                 return data.student;
             }
         } catch (error) {
@@ -66,7 +66,6 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
             throw error;
         }
     };
-
 
 
     const getCategory = async () => {
@@ -96,6 +95,10 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
 
     useEffect(() => {
         getCategory();
+    }, [])
+
+    useEffect(() => {
+
         if (isEditDialogOpen && editStudent) {
             setNewStudent({
                 id: editStudent?.id || "",
@@ -125,6 +128,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                             <Input
                                 id="rollno"
                                 value={newStudent.rollNumber}
+                                type='number'
                                 onChange={(e) => setNewStudent({ ...newStudent, rollNumber: e.target.value })}
                                 placeholder="Enter student's roll number"
                             />
@@ -146,7 +150,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ setIsAddDialogOpen, editStudent
                                 value={newStudent.team}
                                 onValueChange={(value: string) => setNewStudent({ ...newStudent, team: value })}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className='w-full'>
                                     <SelectValue placeholder="Select team" />
                                 </SelectTrigger>
                                 <SelectContent>

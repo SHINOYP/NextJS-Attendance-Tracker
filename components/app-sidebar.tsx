@@ -13,7 +13,7 @@ import {
 import { Users, ClipboardCheck, UserPlus, User, LogOut, Volleyball } from "lucide-react"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
-import { Button } from "./ui/button"
+
 
 
 // Navigation data for the sports club attendance system
@@ -41,7 +41,7 @@ const sidebarData = {
     },
     {
       title: "Account",
-      url: "/account",
+      url: "/",
       icon: <User className="size-4" />
     },
   ],
@@ -103,11 +103,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup className="mt-auto">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <Button onClick={handleLogOut} className="flex items-center gap-2 text-red-500">
+              <SidebarMenuButton onClick={handleLogOut} >
+                <a className="flex items-center gap-2 text-red-500">
                   <LogOut className="size-4" />
                   Logout
-                </Button>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

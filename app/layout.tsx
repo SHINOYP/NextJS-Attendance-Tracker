@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: " Nss Pulse – Track the Heartbeat of Campus Clubs  ",
+  title: " NSS PULSE – Track the Heartbeat of Campus Clubs  ",
   description: "Smart attendance tracking for NSS sports clubs",
 };
 

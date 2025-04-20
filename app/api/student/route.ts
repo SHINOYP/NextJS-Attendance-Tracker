@@ -143,6 +143,16 @@ export async function PUT(request: NextRequest) {
 
     await connectToDatabase();
 
+    const existingUser = await prisma.user.findUnique({
+      where: { rollNumber },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "rollnumber already in use" },
+        { status: 409 }
+      );
+    }
     const updatedStudent = await prisma.user.update({
       where: { id },
       data: {
@@ -205,9 +215,23 @@ export async function DELETE(request: NextRequest) {
 
     await connectToDatabase();
 
-    await prisma.user.delete({
-      where: { id },
-    });
+    try {
+      await prisma.attendance.deleteMany({
+        where: {
+          studentId: id, // assuming foreign key is named userId
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return NextResponse.json(
+        { error: "Something went wrong: Server Error" },
+        { status: 500 }
+      );
+    } finally {
+      await prisma.user.delete({
+        where: { id },
+      });
+    }
 
     return NextResponse.json(
       {

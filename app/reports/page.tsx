@@ -1,7 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
-// import { Button } from "@/components/ui/button";
 import {
     Card,
     CardContent,
@@ -40,7 +39,6 @@ interface AttendanceRecord {
     };
 }
 
-
 export default function CoachViewPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedTeam, setSelectedTeam] = useState("All");
@@ -51,43 +49,58 @@ export default function CoachViewPage() {
     const [endDate, setEndDate] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [teamFilter, setTeamFilter] = useState("All");
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
 
-    // Get attendance for selected date
-    const getAttendanceForDate = () => {
-        return (
-            attendanceData.find((item) => item.date === selectedDate)?.data || {}
-        );
-    };
+    // Memoize attendance for selected date to prevent recalculation on every render
+    const currentDateAttendance = useMemo(() => {
+        return attendanceData.find((item) => item.date === selectedDate)?.data || {};
+    }, [attendanceData, selectedDate]);
 
-    // Filter students based on search and team
-    const filteredStudents = students.filter((student) => {
-        const matchesSearch =
-            student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            student.rollNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            false;
-        const matchesTeam =
-            selectedTeam === "All" || student.Category === selectedTeam;
-        return matchesSearch && matchesTeam;
-    });
+    // Memoize filtered students for better performance
+    const filteredStudents = useMemo(() => {
+        return students.filter((student) => {
+            const matchesSearch =
+                student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                student.rollNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                false;
+            const matchesTeam =
+                selectedTeam === "All" || student.Category === selectedTeam;
+            return matchesSearch && matchesTeam;
+        });
+    }, [students, searchQuery, selectedTeam]);
 
-    // Calculate attendance percentage
-    const calculateAttendancePercentage = (studentId: string) => {
-        let present = 0;
-        let total = 0;
+    // Memoize paginated students
+    const paginatedStudents = useMemo(() => {
+        const startIndex = (page - 1) * pageSize;
+        return filteredStudents.slice(startIndex, startIndex + pageSize);
+    }, [filteredStudents, page, pageSize]);
 
-        attendanceData.forEach((day) => {
-            if (day.data[studentId] !== undefined) {
-                total++;
-                if (day.data[studentId]) {
-                    present++;
+    // Create attendance percentage lookup table for better performance
+    const attendancePercentages = useMemo(() => {
+        const percentages: { [key: string]: string } = {};
+
+        students.forEach((student) => {
+            let present = 0;
+            let total = 0;
+
+            attendanceData.forEach((day) => {
+                if (day.data[student.id] !== undefined) {
+                    total++;
+                    if (day.data[student.id]) {
+                        present++;
+                    }
                 }
-            }
+            });
+
+            percentages[student.id] = total > 0 ?
+                ((present / total) * 100).toFixed(1) + "%" : "N/A";
         });
 
-        return total > 0 ? ((present / total) * 100).toFixed(1) + "%" : "N/A";
-    };
+        return percentages;
+    }, [students, attendanceData]);
 
-    const getStudents = async () => {
+    const getStudents = useCallback(async () => {
         try {
             setIsLoading(true);
             const response = await fetch("/api/student", {
@@ -103,65 +116,27 @@ export default function CoachViewPage() {
                 throw new Error(data.error || "Failed to fetch student");
             }
             setStudents(data.students);
-            setIsLoading(false);
         } catch (error) {
             console.error("Error getting students:", error);
-            throw error;
+        } finally {
+            setIsLoading(false);
         }
-    };
+    }, []);
 
-    // const generateReportData = () => {
-    //     if (!startDate || !endDate) return null;
-
-    //     const reportAttendance = attendanceData.filter((item) => {
-    //         return item.date >= startDate && item.date <= endDate;
-    //     });
-
-    //     const reportStudents = students.filter((student) => {
-    //         return teamFilter === "All" || student.Category === teamFilter;
-    //     });
-
-    //     return {
-    //         dateRange: { startDate, endDate },
-    //         team: teamFilter,
-    //         students: reportStudents.map((student) => ({
-    //             id: student.id,
-    //             name: student.name,
-    //             rollno: student.rollNumber || "",
-    //             team: student.Category || "Unassigned",
-    //             percentage: calculateAttendancePercentage(student.id),
-    //             days: reportAttendance.map((day) => ({
-    //                 date: day.date,
-    //                 present: day.data[student.id] === true,
-    //             })),
-    //         })),
-    //     };
-    // };
-
-    // const exportReport = () => {
-    //     const reportData = generateReportData();
-    //     if (!reportData) {
-    //         alert("Please select start and end dates for the report");
-    //         return;
-    //     }
-
-    //     // In a real application, you would implement actual export functionality here
-    //     // This is just a placeholder
-    //     console.log("Exporting report:", reportData);
-    //     alert("Report export functionality would be implemented here");
-    // };
-
-    const handleDateChange = (date: string) => {
-        const value = date
-        const selectedDate = new Date(value);
+    const handleDateChange = useCallback(async (date: string) => {
+        const selectedDate = new Date(date);
         const today = new Date();
         if (selectedDate > today) {
             alert("Selected date cannot be in the future.");
             return;
         }
         setSelectedDate(date);
-        fetchAttendanceForDate(value)
-    };
+
+        // Check if we already have this date's data in state
+        if (!attendanceData.some(record => record.date === date)) {
+            fetchAttendanceForDate(date);
+        }
+    }, [attendanceData]);
 
     const fetchAttendanceForDate = async (date: string) => {
         try {
@@ -177,21 +152,19 @@ export default function CoachViewPage() {
                 alert("No attendance marked for this date.");
                 return false;
             }
-            const formattedData: { date: string; data: { [key: string]: boolean } } = {
+
+            // Convert response to our format
+            const formattedData: AttendanceRecord = {
                 date,
                 data: {}
             };
-
 
             data.records.forEach((record: { studentId: string | number; status: string; }) => {
                 formattedData.data[record.studentId] = record.status === "PRESENT";
             });
 
-
             setAttendanceData(prev => {
-
                 const filtered = prev.filter(item => item.date !== date);
-
                 return [...filtered, formattedData];
             });
 
@@ -203,8 +176,11 @@ export default function CoachViewPage() {
             setIsLoading(false);
         }
     };
-    // Function to fetch attendance data for a date range
-    const fetchAttendanceRange = async (start: string, end: string) => {
+
+    const fetchAttendanceRange = useCallback(async (start: string, end: string) => {
+        // Don't fetch if we don't have both dates
+        if (!start || !end) return false;
+
         try {
             setIsLoading(true);
             const response = await fetch(`/api/attendance/range?start=${start}&end=${end}&team=${teamFilter}`);
@@ -223,14 +199,7 @@ export default function CoachViewPage() {
                 }[];
             }
 
-            interface FormattedAttendance {
-                date: string;
-                data: {
-                    [studentId: string]: boolean;
-                };
-            }
-
-            const formattedData: FormattedAttendance[] = data.dates.map((dateRecord: DateRecord) => ({
+            const formattedData: AttendanceRecord[] = data.dates.map((dateRecord: DateRecord) => ({
                 date: dateRecord.date,
                 data: dateRecord.records.reduce((acc: { [key: string]: boolean }, record) => {
                     acc[record.studentId] = record.status === "PRESENT";
@@ -246,16 +215,41 @@ export default function CoachViewPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [teamFilter]);
+
+    // Handle pagination
+    const totalPages = useMemo(() =>
+        Math.ceil(filteredStudents.length / pageSize),
+        [filteredStudents.length, pageSize]);
+
+    const goToNextPage = useCallback(() => {
+        if (page < totalPages) {
+            setPage(page + 1);
+        }
+    }, [page, totalPages]);
+
+    const goToPrevPage = useCallback(() => {
+        if (page > 1) {
+            setPage(page - 1);
+        }
+    }, [page]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [searchQuery, selectedTeam]);
+
+    // Initial data loading
     useEffect(() => {
         getStudents();
-    }, []);
+    }, [getStudents]);
 
+    // Fetch attendance range when date range changes
     useEffect(() => {
         if (startDate && endDate) {
             fetchAttendanceRange(startDate, endDate);
         }
-    }, [startDate, endDate, teamFilter]);
+    }, [startDate, endDate, teamFilter, fetchAttendanceRange]);
 
     return (
         <div className="flex h-screen w-full bg-gray-100">
@@ -263,13 +257,10 @@ export default function CoachViewPage() {
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                     <SidebarTrigger className="-ml-1" />
-
                 </header>
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <main className="flex-1 overflow-x-hidden overflow-y-auto p-4">
                         <div className="mx-auto max-w-6xl">
-
-
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-xl">Attendance Records</CardTitle>
@@ -313,16 +304,16 @@ export default function CoachViewPage() {
                                         </div>
                                     </div>
 
-                                    <div className="border overflow-auto rounded-md">
+                                    <div className="border  rounded-md">
                                         {isLoading ? (
                                             <>
-                                                {Array.from({ length: 8 }).map((_, index) => (
+                                                {Array.from({ length: 5 }).map((_, index) => (
                                                     <Skeleton key={index} className="min-w-full h-10 my-2" />
                                                 ))}
                                             </>
                                         ) : (
-                                            <table className="min-w-full divide-y  divide-gray-200">
-                                                <thead className="bg-gray-50">
+                                            <table className="min-w-full divide-y divide-gray-200">
+                                                <thead className="bg-gray-50  ">
                                                     <tr>
                                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                             Roll No.
@@ -341,12 +332,10 @@ export default function CoachViewPage() {
                                                         </th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="bg-white divide-y  divide-gray-200">
-                                                    {filteredStudents.length > 0 ? (
-                                                        filteredStudents.map((student) => {
-                                                            const attendance = getAttendanceForDate();
-                                                            const isPresent =
-                                                                student?.id && attendance[student.id] === true;
+                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                    {paginatedStudents.length > 0 ? (
+                                                        paginatedStudents.map((student) => {
+                                                            const isPresent = currentDateAttendance[student.id] === true;
 
                                                             return (
                                                                 <tr key={student.id}>
@@ -370,7 +359,7 @@ export default function CoachViewPage() {
                                                                         </span>
                                                                     </td>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                        {calculateAttendancePercentage(student.id)}
+                                                                        {attendancePercentages[student.id]}
                                                                     </td>
                                                                 </tr>
                                                             );
@@ -386,12 +375,38 @@ export default function CoachViewPage() {
                                                         </tr>
                                                     )}
                                                 </tbody>
-                                            </table>)}
+                                            </table>
+                                        )}
                                     </div>
+
+                                    {/* Pagination controls */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-between mt-4">
+                                            <div className="text-sm text-gray-700">
+                                                Showing page {page} of {totalPages}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={goToPrevPage}
+                                                    disabled={page === 1}
+                                                    className="px-3 py-1 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                                >
+                                                    Previous
+                                                </button>
+                                                <button
+                                                    onClick={goToNextPage}
+                                                    disabled={page === totalPages}
+                                                    className="px-3 py-1 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </CardContent>
-                                <CardFooter className="flex justify-between overflow-auto ">
-                                    <div className="flex items-center  gap-4">
-                                        <Label className="">Report Range:</Label>
+                                <CardFooter className="flex justify-between overflow-auto">
+                                    <div className="flex items-center gap-4">
+                                        <Label>Report Range:</Label>
                                         <Input
                                             type="date"
                                             value={startDate}
@@ -407,9 +422,12 @@ export default function CoachViewPage() {
                                             className="w-40"
                                             placeholder="End Date"
                                         />
-                                        <Select value={teamFilter} onValueChange={setTeamFilter}>
-                                            <SelectTrigger className="w-40">
-                                                <SelectValue placeholder="Team" />
+                                        <Select
+                                            value={teamFilter}
+                                            onValueChange={setTeamFilter}
+                                        >
+                                            <SelectTrigger className="w-48">
+                                                <SelectValue placeholder="Select team" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="All">All Teams</SelectItem>
@@ -419,18 +437,8 @@ export default function CoachViewPage() {
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    {/* <Button
-                                            className="flex items-center gap-2"
-                                            onClick={exportReport}
-                                        >
-                                            <Download className="h-4 w-4" />
-                                            Export Report
-                                        </Button> */}
                                 </CardFooter>
                             </Card>
-
-
-
                         </div>
                     </main>
                 </div>

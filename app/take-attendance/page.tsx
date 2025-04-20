@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +43,8 @@ export default function TakeAttendancePage() {
     const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
     const [result, setResult] = useState<{ error?: string; attendanceMarked?: boolean } | null>(null);
     const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const pageSize = 20;
 
     // Filter students based on search and team // Filter students based on search and team
     const filteredStudents = attendanceData.filter((student) => {
@@ -54,6 +56,12 @@ export default function TakeAttendancePage() {
             selectedTeam === "All" || student.Category === selectedTeam;
         return matchesSearch && matchesTeam;
     });
+
+    // Memoize paginated students
+    const paginatedStudents = useMemo(() => {
+        const startIndex = (page - 1) * pageSize;
+        return filteredStudents.slice(startIndex, startIndex + pageSize);
+    }, [filteredStudents, page, pageSize]);
 
 
     const getStudents = async () => {
@@ -145,6 +153,30 @@ export default function TakeAttendancePage() {
     useEffect(() => {
         getStudents();
     }, []);
+
+
+    // Handle pagination
+    const totalPages = useMemo(() =>
+        Math.ceil(filteredStudents.length / pageSize),
+        [filteredStudents.length, pageSize]);
+
+    const goToNextPage = useCallback(() => {
+        if (page < totalPages) {
+            setPage(page + 1);
+        }
+    }, [page, totalPages]);
+
+    const goToPrevPage = useCallback(() => {
+        if (page > 1) {
+            setPage(page - 1);
+        }
+    }, [page]);
+
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [searchQuery, selectedTeam]);
 
     useEffect(() => {
         const checkAttendance = async () => {
@@ -253,8 +285,8 @@ export default function TakeAttendancePage() {
                                                     </tr>
                                                 </thead>
                                                 <tbody className="bg-white w-full divide-y divide-gray-200">
-                                                    {filteredStudents?.length > 0 ? (
-                                                        filteredStudents?.map((student) => (
+                                                    {paginatedStudents?.length > 0 ? (
+                                                        paginatedStudents?.map((student) => (
                                                             <tr key={student?.id}>
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                                     {student?.rollNumber}
@@ -291,6 +323,30 @@ export default function TakeAttendancePage() {
                                             </table>
                                         )}
                                     </div>
+                                    {/* Pagination controls */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-between mt-4">
+                                            <div className="text-sm text-gray-700">
+                                                Showing page {page} of {totalPages}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={goToPrevPage}
+                                                    disabled={page === 1}
+                                                    className="px-3 py-1 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                                >
+                                                    Previous
+                                                </button>
+                                                <button
+                                                    onClick={goToNextPage}
+                                                    disabled={page === totalPages}
+                                                    className="px-3 py-1 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </CardContent>
                                 <CardFooter className="flex justify-end">
                                     <Button
@@ -312,3 +368,5 @@ export default function TakeAttendancePage() {
         </div>
     );
 }
+
+
