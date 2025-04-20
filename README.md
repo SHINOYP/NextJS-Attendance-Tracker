@@ -1,6 +1,6 @@
 # Sports Club Attendance System
 
-A comprehensive attendance tracking solution for college sports clubs, built with Next.js and React.
+A comprehensive attendance tracking solution for college sports clubs, built with Next.js, React, and Prisma with MongoDB.
 
 ![Sports Club Attendance System](https://github.com/yourusername/sports-club-attendance/raw/main/public/api/placeholder/800/400)
 
@@ -16,6 +16,8 @@ This web-based application helps sports coaches and club administrators efficien
 - **Attendance Reports**: Generate reports for specific date ranges and teams
 - **Performance Optimized**: Pagination, memoization, and efficient data handling for smooth performance
 - **Responsive Design**: Works on desktop and mobile devices
+- **Authentication**: Secure login with NextAuth.js
+- **Role-based Access**: Different views for coaches, administrators, and students
 
 ## 🛠️ Tech Stack
 
@@ -27,9 +29,13 @@ This web-based application helps sports coaches and club administrators efficien
 
 - **Backend**:
   - Next.js API routes
-  - Database integration (supports various backends)
+  - Prisma ORM
+  - MongoDB database
+  - NextAuth.js for authentication
 
 - **State Management**:
+  - React Context API
+  - Custom hooks
   - React hooks (useState, useEffect, useMemo, useCallback)
 
 ## 📊 Screenshots
@@ -46,6 +52,7 @@ This web-based application helps sports coaches and club administrators efficien
 
 - Node.js 18.x or higher
 - npm or yarn
+- MongoDB instance (local or Atlas)
 
 ### Installation
 
@@ -66,31 +73,49 @@ This web-based application helps sports coaches and club administrators efficien
    ```bash
    cp .env.example .env.local
    ```
-   Edit `.env.local` with your database credentials and other configuration.
+   Edit `.env.local` with your MongoDB connection string, NextAuth configuration, and other settings.
 
-4. Run the development server:
+4. Set up Prisma:
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
+
+5. Run the development server:
    ```bash
    npm run dev
    # or
    yarn dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🏗️ Project Structure
 
 ```
 sports-club-attendance/
-├── app/                  # Next.js App Router
+├── app/                  # Next.js App Router (pages and routes)
 ├── components/           # Reusable UI components
 │   ├── app-sidebar/      # Application sidebar
 │   └── ui/               # ShadCN UI components
-├── lib/                  # Utility functions and API helpers
-├── app/                # Page components
-│   └── api/              # API routes
-├── public/               # Static assets
-└── styles/               # Global styles
+├── context/              # React Context providers
+├── helpers/              # Helper functions and utilities
+├── hooks/                # Custom React hooks
+├── lib/                  # Library code and utilities
+├── types/                # TypeScript type definitions
+├── prisma/               # Prisma schema and migrations
+│   └── schema.prisma     # Database schema
+└── public/               # Static assets
 ```
+
+## 📝 Database Schema
+
+The application uses Prisma with MongoDB to manage:
+- User accounts and authentication
+- Student records
+- Team/Category information
+- Attendance records
+- Reports and analytics data
 
 ## 🧪 Performance Optimizations
 
@@ -100,6 +125,15 @@ The application includes several performance optimizations:
 - **Memoization**: Prevent unnecessary recalculations with useMemo and useCallback
 - **Optimized Data Fetching**: Smart fetching to reduce unnecessary API calls
 - **Efficient Rendering**: Minimizing re-renders through proper React patterns
+- **MongoDB Indexing**: Optimized database queries for faster data retrieval
+- **Context Optimization**: Carefully structured contexts to prevent unnecessary re-renders
+
+## 🔒 Authentication
+
+- Secure authentication using NextAuth.js
+- Support for multiple authentication providers
+- Role-based access control for coaches, administrators, and students
+- Session management and token handling
 
 ## 🤝 Contributing
 
@@ -119,6 +153,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Next.js](https://nextjs.org/)
 - [React](https://reactjs.org/)
+- [Prisma](https://www.prisma.io/)
+- [MongoDB](https://www.mongodb.com/)
+- [NextAuth.js](https://next-auth.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [ShadCN UI](https://ui.shadcn.com/)
 - [Lucide Icons](https://lucide.dev/)
