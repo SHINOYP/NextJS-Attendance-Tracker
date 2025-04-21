@@ -42,7 +42,7 @@ interface AttendanceRecord {
 export default function CoachViewPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedTeam, setSelectedTeam] = useState("All");
-    const [selectedDate, setSelectedDate] = useState("2025-03-15");
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
     const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [startDate, setStartDate] = useState("");
