@@ -304,7 +304,7 @@ export default function CoachViewPage() {
                                         </div>
                                     </div>
 
-                                    <div className="border  rounded-md">
+                                    <div className="border overflow-auto rounded-md">
                                         {isLoading ? (
                                             <>
                                                 {Array.from({ length: 5 }).map((_, index) => (

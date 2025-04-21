@@ -224,7 +224,7 @@ export default function Page() {
                                     </div>
 
 
-                                    <div className="border rounded-md max-h-[60vh] overflow-auto  ">
+                                    <div className="border rounded-md  overflow-auto  ">
                                         {isLoading ? (
                                             <>
                                                 {Array.from({ length: 8 }).map((_, index) => (
